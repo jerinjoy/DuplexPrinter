@@ -16,14 +16,9 @@ A simple, native macOS application built with SwiftUI to help you manually print
 
 ## How to Build
 
-Run the included build script:
+Simply open `DuplexPrinter.xcodeproj` in Xcode and click the **Run** button (or press `Cmd + R`).
 
-```bash
-chmod +x build.sh
-./build.sh
-```
-
-This will compile the Swift files and package them into `DuplexPrinter.app` in the same directory. You can then double-click the `.app` bundle to run it.
+*(Note: The Xcode project structure was generated using [XcodeGen](https://github.com/yonaskolb/XcodeGen).)*
 
 ## Implementation Details
 This app was built as a lightweight utility. The core logic handles edge cases such as documents with an odd number of pages (where the system must spool a blank page with a microscopic dot to bypass macOS print spooler skip mechanisms).
