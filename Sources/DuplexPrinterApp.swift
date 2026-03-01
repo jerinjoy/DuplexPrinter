@@ -14,5 +14,6 @@ struct DuplexPrinterApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentSize)
     }
 }

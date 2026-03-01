@@ -46,11 +46,9 @@ struct ContentView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
 
                     Button(action: printEvenPagesReversed) {
                         VStack(spacing: 8) {
@@ -63,11 +61,9 @@ struct ContentView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
                 }
 
                 Button("Choose Different File") {
