@@ -11,6 +11,11 @@ echo "Building $APP_NAME..."
 mkdir -p "$BIN_DIR"
 mkdir -p "$RES_DIR"
 
+# Copy Icon
+if [ -f "AppIcon.icns" ]; then
+    cp AppIcon.icns "$RES_DIR/"
+fi
+
 # Create Info.plist
 cat > "$APP_BUNDLE/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -27,6 +32,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<EOF
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
     <string>11.0</string>
 </dict>
