@@ -1,5 +1,10 @@
 # Duplex Printer
 
+<div align="center">
+  <img src="AppIcon.png" alt="Duplex Printer Icon" width="256" height="256">
+</div>
+<br>
+
 A simple, native macOS application built with SwiftUI to help you manually print duplex (double-sided) on printers that don't support it natively.
 
 ## Features
