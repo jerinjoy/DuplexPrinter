@@ -1,0 +1,12 @@
+.DS_Store
+*.swp
+*~.nib
+build/
+DerivedData/
+
+# Ignore the built app bundle
+DuplexPrinter.app/
+
+# Ignore test files
+test.pdf
+test_pdf.swift
