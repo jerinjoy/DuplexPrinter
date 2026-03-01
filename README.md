@@ -25,6 +25,15 @@ chmod +x build.sh
 
 This will compile the Swift files and package them into `DuplexPrinter.app` in the same directory. You can then double-click the `.app` bundle to run it.
 
+## Implementation Details
+This app was built as a lightweight utility. The core logic handles edge cases such as documents with an odd number of pages (where the system must spool a blank page with a microscopic dot to bypass macOS print spooler skip mechanisms).
+
+- **`ContentView.swift`**: Handles the drag-and-drop interface and state management.
+- **`PrintManager.swift`**: Utilizes `PDFKit` to extract and reverse pages, then natively hands them off to `NSPrintOperation` for tight integration with the macOS printing dialog.
+
+## Credits
+Created by **Jerin Joy** and **Noel Joy**.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
