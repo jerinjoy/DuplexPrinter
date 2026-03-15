@@ -175,27 +175,12 @@ struct ContentView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
-                Text("Now, take the printed pages and load them back into the printer. Follow your printer's instructions for manual duplexing to ensure they are oriented correctly.")
+                Text("Reload the Printed Pages.")
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
             }
 
-            // Using SF Symbols for a mock animation view since we don't have custom assets
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.orange.opacity(0.1))
-                VStack(spacing: 15) {
-                    Image(systemName: "arrow.uturn.down.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.orange)
-                    Text("Flip the paper short-edge or long-edge according to your printer, then insert face up/down.")
-                        .font(.caption)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                .padding()
-            }
-            .frame(height: 140)
+            FlipAnimationView()
 
             Button(action: printEvenPagesReversed) {
                 VStack(spacing: 8) {
@@ -309,6 +294,60 @@ struct ContentView: View {
             self.currentStep = .done
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+}
+
+struct FlipAnimationView: View {
+    @State private var flipDegrees: Double = 0
+    @State private var yOffset: CGFloat = 0
+    @State private var docOpacity: Double = 1.0
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.orange.opacity(0.1))
+            
+            VStack(spacing: 15) {
+                ZStack {
+                    Image(systemName: "printer.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.gray)
+                        .offset(y: 30)
+                        
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.orange)
+                        .rotationEffect(.degrees(flipDegrees))
+                        .offset(y: yOffset)
+                        .opacity(docOpacity)
+                }
+                .frame(height: 80)
+            }
+            .padding()
+        }
+        .frame(height: 160)
+        .onAppear {
+            startAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        flipDegrees = 0
+        yOffset = -30
+        docOpacity = 1.0
+        
+        withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
+            flipDegrees = 180
+        }
+        
+        withAnimation(.easeIn(duration: 0.8).delay(1.5)) {
+            yOffset = 10
+            docOpacity = 0.0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            startAnimation()
         }
     }
 }
