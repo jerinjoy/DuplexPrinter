@@ -9,100 +9,37 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum PrintStep {
+    case fileSelection
+    case printingOddPages
+    case printingEvenPages
+    case done
+}
+
 struct ContentView: View {
     @State private var selectedFileURL: URL?
     @State private var documentPageCount: Int = 0
     @State private var errorMessage: String?
     @State private var isHovering = false
     @State private var showingFileImporter = false
+    @State private var currentStep: PrintStep = .fileSelection
+    @State private var numberOfCopies: Int = 1
 
     var body: some View {
         VStack(spacing: 30) {
             Text("Duplex Printer")
                 .font(.system(size: 32, weight: .bold))
 
-            if let url = selectedFileURL {
-                VStack(spacing: 8) {
-                    Image(systemName: "doc.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.accentColor)
-                    Text(url.lastPathComponent)
-                        .font(.headline)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Text("\(documentPageCount) Pages")
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
-
-                HStack(spacing: 20) {
-                    Button(action: printOddPages) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "printer.fill")
-                                .font(.title)
-                            Text("1. Print Odd Pages")
-                                .fontWeight(.semibold)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-
-                    Button(action: printEvenPagesReversed) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "printer.fill.and.paper.fill")
-                                .font(.title)
-                            Text("2. Print Even Pages")
-                                .fontWeight(.semibold)
-                            Text("(Reversed)")
-                                .font(.caption)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.green)
-                }
-
-                Button("Choose Different File") {
-                    selectedFileURL = nil
-                    documentPageCount = 0
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.blue)
-                .padding(.top, 10)
-
-            } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(
-                            style: StrokeStyle(lineWidth: 2, dash: [10])
-                        )
-                        .foregroundColor(isHovering ? .accentColor : .gray)
-                        .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
-
-                    VStack(spacing: 12) {
-                        Image(systemName: "arrow.down.doc")
-                            .font(.system(size: 48))
-                            .foregroundColor(isHovering ? .accentColor : .gray)
-                        Text("Drag & Drop PDF here")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                        Text("or click to select file")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .frame(width: 400, height: 260)
-                .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
-                    return handleDrop(providers: providers)
-                }
-                .onTapGesture {
-                    showingFileImporter = true
-                }
+            switch currentStep {
+            case .fileSelection:
+                fileSelectionView
+            case .printingOddPages:
+                printingOddPagesView
+            case .printingEvenPages:
+                printingEvenPagesView
+            case .done:
+                doneView
             }
-
             if let error = errorMessage {
                 Text(error)
                     .foregroundColor(.red)
@@ -120,6 +57,177 @@ struct ContentView: View {
             case .failure(let error):
                 self.errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    @ViewBuilder
+    private var fileSelectionView: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(
+                    style: StrokeStyle(lineWidth: 2, dash: [10])
+                )
+                .foregroundColor(isHovering ? .accentColor : .gray)
+                .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
+
+            VStack(spacing: 12) {
+                Image(systemName: "arrow.down.doc")
+                    .font(.system(size: 48))
+                    .foregroundColor(isHovering ? .accentColor : .gray)
+                Text("Drag & Drop PDF here")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                Text("or click to select file")
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(width: 400, height: 260)
+        .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
+            return handleDrop(providers: providers)
+        }
+        .onTapGesture {
+            showingFileImporter = true
+        }
+    }
+
+    @ViewBuilder
+    private var printingOddPagesView: some View {
+        VStack(spacing: 20) {
+            if let url = selectedFileURL {
+                VStack(spacing: 8) {
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.accentColor)
+                    Text(url.lastPathComponent)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text("\(documentPageCount) Pages")
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+            }
+
+            VStack(spacing: 12) {
+                Text("How many copies do you need?")
+                    .font(.headline)
+                HStack {
+                    Stepper(value: $numberOfCopies, in: 1...100) {
+                        EmptyView() // Label hidden for custom layout
+                    }
+                    .labelsHidden()
+                    
+                    Text("\(numberOfCopies) \(numberOfCopies == 1 ? "Copy" : "Copies")")
+                        .frame(minWidth: 80, alignment: .leading)
+                        .font(.title3)
+                }
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.05)))
+
+            Button(action: printOddPages) {
+                VStack(spacing: 8) {
+                    Image(systemName: "printer.fill")
+                        .font(.title2)
+                    Text("1. Print Odd Pages")
+                        .fontWeight(.semibold)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
+
+            Button("Choose Different File") {
+                selectedFileURL = nil
+                documentPageCount = 0
+                currentStep = .fileSelection
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .padding(.top, 10)
+        }
+    }
+
+    @ViewBuilder
+    private var printingEvenPagesView: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text("Step 1 Complete")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                Text("Now, take the printed pages and load them back into the printer. Follow your printer's instructions for manual duplexing to ensure they are oriented correctly.")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+            }
+
+            // Using SF Symbols for a mock animation view since we don't have custom assets
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.1))
+                VStack(spacing: 15) {
+                    Image(systemName: "arrow.uturn.down.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.orange)
+                    Text("Flip the paper short-edge or long-edge according to your printer, then insert face up/down.")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding()
+            }
+            .frame(height: 140)
+
+            Button(action: printEvenPagesReversed) {
+                VStack(spacing: 8) {
+                    Image(systemName: "printer.fill.and.paper.fill")
+                        .font(.title2)
+                    Text("2. Print Even Pages")
+                        .fontWeight(.semibold)
+                    Text("(Reversed)")
+                        .font(.caption)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.green)
+
+            Button("Go Back") {
+                currentStep = .printingOddPages
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .padding(.top, 10)
+        }
+    }
+
+    @ViewBuilder
+    private var doneView: some View {
+        VStack(spacing: 30) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.green)
+
+            VStack(spacing: 8) {
+                Text("Printing Complete!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Text("Your document is ready.")
+                    .foregroundColor(.secondary)
+            }
+
+            Button("Print Another Document") {
+                selectedFileURL = nil
+                documentPageCount = 0
+                numberOfCopies = 1
+                currentStep = .fileSelection
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
+            .controlSize(.large)
         }
     }
 
@@ -150,6 +258,7 @@ struct ContentView: View {
             self.selectedFileURL = url
             self.documentPageCount = PrintManager.shared.pageCount ?? 0
             self.errorMessage = nil
+            self.currentStep = .printingOddPages
         } else {
             self.errorMessage = "Failed to load PDF."
         }
@@ -158,7 +267,11 @@ struct ContentView: View {
     private func printOddPages() {
         guard PrintManager.shared.hasPDF else { return }
         do {
-            try PrintManager.shared.printOddPages()
+            try PrintManager.shared.printOddPages(copies: numberOfCopies)
+             // Transition happens AFTER successful print dialog presentation
+             // Note: In a real app we'd want a callback from PrintManager when the print job finishes,
+             // but for this utility, progressing immediately after queuing is acceptable.
+            self.currentStep = .printingEvenPages
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -167,7 +280,8 @@ struct ContentView: View {
     private func printEvenPagesReversed() {
         guard PrintManager.shared.hasPDF else { return }
         do {
-            try PrintManager.shared.printEvenPagesReversed()
+            try PrintManager.shared.printEvenPagesReversed(copies: numberOfCopies)
+            self.currentStep = .done
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -26,7 +26,7 @@ class PrintManager {
         return false
     }
     
-    func printOddPages() throws {
+    func printOddPages(copies: Int = 1) throws {
         guard let doc = document else { throw NSError(domain: "PrintManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "No document loaded"]) }
         
         let printDoc = PDFDocument()
@@ -42,10 +42,10 @@ class PrintManager {
             }
         }
         
-        printDocument(printDoc, jobName: "Odd Pages")
+        printDocument(printDoc, jobName: "Odd Pages", copies: copies)
     }
     
-    func printEvenPagesReversed() throws {
+    func printEvenPagesReversed(copies: Int = 1) throws {
         guard let doc = document else { throw NSError(domain: "PrintManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "No document loaded"]) }
         
         let printDoc = PDFDocument()
@@ -95,14 +95,15 @@ class PrintManager {
             }
         }
         
-        printDocument(printDoc, jobName: "Even Pages (Reversed)")
+        printDocument(printDoc, jobName: "Even Pages (Reversed)", copies: copies)
     }
     
-    private func printDocument(_ pdf: PDFDocument, jobName: String) {
+    private func printDocument(_ pdf: PDFDocument, jobName: String, copies: Int = 1) {
         let printInfo = NSPrintInfo.shared
         printInfo.jobDisposition = .spool
         printInfo.horizontalPagination = .fit
         printInfo.verticalPagination = .fit
+        printInfo.dictionary().setObject(copies, forKey: NSPrintInfo.AttributeKey.copies as NSCopying)
         
         // Use PDFDocument's printOperation (available in PDFKit on macOS)
         guard let printOp = pdf.printOperation(for: printInfo, scalingMode: .pageScaleToFit, autoRotate: true) else {
