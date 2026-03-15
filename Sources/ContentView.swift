@@ -29,7 +29,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 30) {
             Text("Duplex Printer")
-                .font(.system(size: 32, weight: .bold))
+                .font(.largeTitle.bold())
 
             switch currentStep {
             case .fileSelection:
@@ -48,8 +48,22 @@ struct ContentView: View {
             }
         }
         .padding(40)
-        .frame(minWidth: 500, minHeight: 450)
+        .frame(width: 500, height: 550)
         .background(dryRunEnabled ? Color.orange.opacity(0.15) : Color.clear)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                if currentStep != .fileSelection {
+                    Button("Start Over") {
+                        withAnimation {
+                            selectedFileURL = nil
+                            documentPageCount = 0
+                            numberOfCopies = 1
+                            currentStep = .fileSelection
+                        }
+                    }
+                }
+            }
+        }
         .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
@@ -87,7 +101,7 @@ struct ContentView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                .frame(width: 400, height: 260)
+                .frame(width: 400, height: 220)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -113,7 +127,7 @@ struct ContentView: View {
             if let url = selectedFileURL {
                 VStack(spacing: 8) {
                     Image(systemName: "doc.fill")
-                        .font(.system(size: 40))
+                        .font(.title)
                         .foregroundColor(.accentColor)
                     Text(url.lastPathComponent)
                         .font(.headline)
@@ -123,15 +137,13 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+                .background(RoundedRectangle(cornerRadius: 12).fill(.regularMaterial))
             }
 
-            VStack(spacing: 12) {
-                Text("How many copies do you need?")
-                    .font(.headline)
+            GroupBox("Copies") {
                 HStack {
                     Stepper(value: $numberOfCopies, in: 1...100) {
-                        EmptyView() // Label hidden for custom layout
+                        EmptyView()
                     }
                     .labelsHidden()
                     
@@ -140,8 +152,6 @@ struct ContentView: View {
                         .font(.title3)
                 }
             }
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.05)))
 
             Button(action: printOddPages) {
                 VStack(spacing: 8) {
@@ -157,9 +167,11 @@ struct ContentView: View {
             .tint(.blue)
 
             Button("Choose Different File") {
-                selectedFileURL = nil
-                documentPageCount = 0
-                currentStep = .fileSelection
+                withAnimation {
+                    selectedFileURL = nil
+                    documentPageCount = 0
+                    currentStep = .fileSelection
+                }
             }
             .buttonStyle(.plain)
             .foregroundColor(.secondary)
@@ -198,7 +210,9 @@ struct ContentView: View {
             .tint(.green)
 
             Button("Go Back") {
-                currentStep = .printingOddPages
+                withAnimation {
+                    currentStep = .printingOddPages
+                }
             }
             .buttonStyle(.plain)
             .foregroundColor(.secondary)
@@ -222,10 +236,12 @@ struct ContentView: View {
             }
 
             Button("Print Another Document") {
-                selectedFileURL = nil
-                documentPageCount = 0
-                numberOfCopies = 1
-                currentStep = .fileSelection
+                withAnimation {
+                    selectedFileURL = nil
+                    documentPageCount = 0
+                    numberOfCopies = 1
+                    currentStep = .fileSelection
+                }
             }
             .buttonStyle(.borderedProminent)
             .tint(.blue)
@@ -260,7 +276,9 @@ struct ContentView: View {
             self.selectedFileURL = url
             self.documentPageCount = PrintManager.shared.pageCount ?? 0
             self.errorMessage = nil
-            self.currentStep = .printingOddPages
+            withAnimation {
+                self.currentStep = .printingOddPages
+            }
         } else {
             self.errorMessage = "Failed to load PDF."
         }
@@ -268,16 +286,13 @@ struct ContentView: View {
 
     private func printOddPages() {
         if dryRunEnabled {
-            self.currentStep = .printingEvenPages
+            withAnimation { self.currentStep = .printingEvenPages }
             return
         }
         guard PrintManager.shared.hasPDF else { return }
         do {
             try PrintManager.shared.printOddPages(copies: numberOfCopies)
-             // Transition happens AFTER successful print dialog presentation
-             // Note: In a real app we'd want a callback from PrintManager when the print job finishes,
-             // but for this utility, progressing immediately after queuing is acceptable.
-            self.currentStep = .printingEvenPages
+            withAnimation { self.currentStep = .printingEvenPages }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -285,13 +300,13 @@ struct ContentView: View {
 
     private func printEvenPagesReversed() {
         if dryRunEnabled {
-            self.currentStep = .done
+            withAnimation { self.currentStep = .done }
             return
         }
         guard PrintManager.shared.hasPDF else { return }
         do {
             try PrintManager.shared.printEvenPagesReversed(copies: numberOfCopies)
-            self.currentStep = .done
+            withAnimation { self.currentStep = .done }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -306,7 +321,7 @@ struct FlipAnimationView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.orange.opacity(0.1))
+                .fill(.regularMaterial)
             
             VStack(spacing: 15) {
                 ZStack {
