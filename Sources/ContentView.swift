@@ -62,31 +62,34 @@ struct ContentView: View {
 
     @ViewBuilder
     private var fileSelectionView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(
-                    style: StrokeStyle(lineWidth: 2, dash: [10])
-                )
-                .foregroundColor(isHovering ? .accentColor : .gray)
-                .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
-
-            VStack(spacing: 12) {
-                Image(systemName: "arrow.down.doc")
-                    .font(.system(size: 48))
+        Button(action: {
+            showingFileImporter = true
+        }) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(
+                        style: StrokeStyle(lineWidth: 2, dash: [10])
+                    )
                     .foregroundColor(isHovering ? .accentColor : .gray)
-                Text("Drag & Drop PDF here")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                Text("or click to select file")
-                    .foregroundColor(.secondary)
+                    .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
+
+                VStack(spacing: 12) {
+                    Image(systemName: "arrow.down.doc")
+                        .font(.system(size: 48))
+                        .foregroundColor(isHovering ? .accentColor : .gray)
+                    Text("Drag & Drop PDF here")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                    Text("or click to select file")
+                        .foregroundColor(.secondary)
+                }
             }
+            .frame(width: 400, height: 260)
+            .contentShape(Rectangle())
         }
-        .frame(width: 400, height: 260)
+        .buttonStyle(.plain)
         .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
             return handleDrop(providers: providers)
-        }
-        .onTapGesture {
-            showingFileImporter = true
         }
     }
 

@@ -19,9 +19,21 @@ class PrintManager {
     var pageCount: Int? { document?.pageCount }
     
     func loadPDF(url: URL) -> Bool {
-        if let pdf = PDFDocument(url: url) {
-            self.document = pdf
-            return true
+        let isSecurityScoped = url.startAccessingSecurityScopedResource()
+        defer {
+            if isSecurityScoped {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            if let pdf = PDFDocument(data: data) {
+                self.document = pdf
+                return true
+            }
+        } catch {
+            print("Failed to read PDF data: \(error)")
         }
         return false
     }
