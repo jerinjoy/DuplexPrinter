@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var showingFileImporter = false
     @State private var currentStep: PrintStep = .fileSelection
     @State private var numberOfCopies: Int = 1
+    @AppStorage("dryRunEnabled") private var dryRunEnabled = false
 
     var body: some View {
         VStack(spacing: 30) {
@@ -48,6 +49,7 @@ struct ContentView: View {
         }
         .padding(40)
         .frame(minWidth: 500, minHeight: 450)
+        .background(dryRunEnabled ? Color.orange.opacity(0.15) : Color.clear)
         .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
@@ -62,34 +64,46 @@ struct ContentView: View {
 
     @ViewBuilder
     private var fileSelectionView: some View {
-        Button(action: {
-            showingFileImporter = true
-        }) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(
-                        style: StrokeStyle(lineWidth: 2, dash: [10])
-                    )
-                    .foregroundColor(isHovering ? .accentColor : .gray)
-                    .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
-
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.down.doc")
-                        .font(.system(size: 48))
+        VStack(spacing: 16) {
+            Button(action: {
+                showingFileImporter = true
+            }) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(
+                            style: StrokeStyle(lineWidth: 2, dash: [10])
+                        )
                         .foregroundColor(isHovering ? .accentColor : .gray)
-                    Text("Drag & Drop PDF here")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    Text("or click to select file")
-                        .foregroundColor(.secondary)
+                        .background(isHovering ? Color.accentColor.opacity(0.1) : Color.clear)
+
+                    VStack(spacing: 12) {
+                        Image(systemName: "arrow.down.doc")
+                            .font(.system(size: 48))
+                            .foregroundColor(isHovering ? .accentColor : .gray)
+                        Text("Drag & Drop PDF here")
+                            .font(.title3)
+                            .fontWeight(.medium)
+                        Text("or click to select file")
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .frame(width: 400, height: 260)
+                .contentShape(Rectangle())
             }
-            .frame(width: 400, height: 260)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
-            return handleDrop(providers: providers)
+            .buttonStyle(.plain)
+            .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
+                return handleDrop(providers: providers)
+            }
+            
+            if dryRunEnabled {
+                Button("Skip File Selection (Dry Run)") {
+                    self.selectedFileURL = URL(fileURLWithPath: "/tmp/debug_file.pdf")
+                    self.documentPageCount = 8
+                    self.currentStep = .printingOddPages
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.orange)
+            }
         }
     }
 
@@ -268,6 +282,10 @@ struct ContentView: View {
     }
 
     private func printOddPages() {
+        if dryRunEnabled {
+            self.currentStep = .printingEvenPages
+            return
+        }
         guard PrintManager.shared.hasPDF else { return }
         do {
             try PrintManager.shared.printOddPages(copies: numberOfCopies)
@@ -281,6 +299,10 @@ struct ContentView: View {
     }
 
     private func printEvenPagesReversed() {
+        if dryRunEnabled {
+            self.currentStep = .done
+            return
+        }
         guard PrintManager.shared.hasPDF else { return }
         do {
             try PrintManager.shared.printEvenPagesReversed(copies: numberOfCopies)
