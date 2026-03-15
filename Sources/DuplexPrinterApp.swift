@@ -10,10 +10,17 @@ import SwiftUI
 
 @main
 struct DuplexPrinterApp: App {
+    @AppStorage("dryRunEnabled") private var dryRunEnabled = false
+
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .windowResizability(.contentSize)
+        .commands {
+            CommandMenu("Debug") {
+                Toggle("Enable Dry Run", isOn: $dryRunEnabled)
+            }
+        }
     }
 }
