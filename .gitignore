@@ -10,3 +10,8 @@ DuplexPrinter.app/
 # Ignore test files
 test.pdf
 test_pdf.swift
+
+# Xcode User State
+*.xcuserstate
+xcuserdata/
+*/xcuserdata/
