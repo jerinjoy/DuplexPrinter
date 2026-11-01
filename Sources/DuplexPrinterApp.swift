@@ -12,7 +12,6 @@ import SwiftUI
 struct DuplexPrinterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @AppStorage("dryRunEnabled") private var dryRunEnabled = false
-    @State private var printMenuInstalled = PDFServices.isInstalled
 
     var body: some Scene {
         WindowGroup {
@@ -20,15 +19,6 @@ struct DuplexPrinterApp: App {
         }
         .windowResizability(.contentSize)
         .commands {
-            CommandGroup(after: .appSettings) {
-                Toggle("Show in Print Dialog PDF Menu", isOn: Binding(
-                    get: { printMenuInstalled },
-                    set: { install in
-                        PDFServices.setInstalled(install)
-                        printMenuInstalled = PDFServices.isInstalled
-                    }
-                ))
-            }
             CommandMenu("Debug") {
                 Toggle("Enable Dry Run", isOn: $dryRunEnabled)
             }

@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var numberOfCopies: Int = 1
     @AppStorage("dryRunEnabled") private var dryRunEnabled = false
     @ObservedObject private var openedDocument = OpenedDocument.shared
+    @State private var printMenuInstalled = PDFServices.isInstalled
 
     var body: some View {
         VStack(spacing: 30) {
@@ -114,7 +115,17 @@ struct ContentView: View {
             .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
                 return handleDrop(providers: providers)
             }
-            
+
+            Toggle("Show Duplex Printer in Print dialogs", isOn: Binding(
+                get: { printMenuInstalled },
+                set: { install in
+                    PDFServices.setInstalled(install)
+                    printMenuInstalled = PDFServices.isInstalled
+                }
+            ))
+            .toggleStyle(.checkbox)
+            .help("Adds Duplex Printer to the PDF menu in every app's Print dialog")
+
             if dryRunEnabled {
                 Button("Skip File Selection (Dry Run)") {
                     self.selectedFileURL = URL(fileURLWithPath: "/tmp/debug_file.pdf")
