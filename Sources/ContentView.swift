@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var currentStep: PrintStep = .fileSelection
     @State private var numberOfCopies: Int = 1
     @AppStorage("dryRunEnabled") private var dryRunEnabled = false
+    @ObservedObject private var openedDocument = OpenedDocument.shared
 
     var body: some View {
         VStack(spacing: 30) {
@@ -63,6 +64,11 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+        .onReceive(openedDocument.$url.compactMap { $0 }) { url in
+            openedDocument.url = nil
+            numberOfCopies = 1
+            loadFile(url: url)
         }
         .fileImporter(isPresented: $showingFileImporter, allowedContentTypes: [.pdf], allowsMultipleSelection: false) { result in
             switch result {
